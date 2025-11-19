@@ -1,0 +1,11 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: travelmap-tester
+spec:
+  template:
+    spec:
+      containers:
+        - name: travelmap-tester
+          image: somlh1212/travelmap-tester:v1.0.0
+          imagePullPolicy: Always
