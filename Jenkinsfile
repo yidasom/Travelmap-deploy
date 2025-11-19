@@ -87,13 +87,13 @@ pipeline {
             }
         }
 
-        stage('커스터마이즈 배포') {
-            steps {
-                // K8S 배포
-                input message: '배포 시작', ok: "Yes"
-                sh "kubectl apply -f ./deploy/kubectl/namespace-${params.PROFILE}.yaml"
-                sh "kubectl apply -k ./deploy/kustomize/travelmap-tester/overlays/${params.PROFILE}"
-            }
-        }
+//         stage('커스터마이즈 배포') {
+//             steps {
+//                 // K8S 배포
+//                 input message: '배포 시작', ok: "Yes"
+//                 sh "kubectl apply -f ./deploy/kubectl/namespace-${params.PROFILE}.yaml"
+//                 sh "kubectl apply -k ./deploy/kustomize/travelmap-tester/overlays/${params.PROFILE}"
+//             }
+//         }
     }
 }
