@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     tools {
-        gradle 'gradle-7.6.1'
-        jdk 'jdk-17'
+        gradle 'gradle-8.14.3'
+        jdk 'jdk-21'
     }
 
     parameters {
@@ -17,6 +17,8 @@ pipeline {
 
     environment {
         GITHUB_URL = "https://github.com/yidasom/Travelmap-deploy.git"
+        APP_IMAGE   = "travelmap-tester"
+        APP_VERSION = "v1.0.0"
     }
 
     stages {
@@ -47,29 +49,34 @@ pipeline {
             }
         }
 
-        stage('릴리즈파일 체크아웃') {
-            steps {
-                checkout scmGit(branches: [[name: '*/main']],
-                        extensions: [[$class: 'SparseCheckoutPaths',
-                                      sparseCheckoutPaths: [[path: "/deploy"]]]],
-                        userRemoteConfigs: [[url: "${GITHUB_URL}"]])
-            }
-        }
+//         stage('릴리즈파일 체크아웃') {
+//             steps {
+//                 checkout scmGit(branches: [[name: '*/main']],
+//                         extensions: [[$class: 'SparseCheckoutPaths',
+//                                       sparseCheckoutPaths: [[path: "/deploy"]]]],
+//                         userRemoteConfigs: [[url: "${GITHUB_URL}"]])
+//             }
+//         }
 
         stage('컨테이너 빌드') {
             steps {
                 // jar 파일 복사
-                echo "cp ./build/libs/app-0.0.1-SNAPSHOT.jar ./deploy/build/docker/app-0.0.1-SNAPSHOT.jar"
-
-                // 도커     빌드
-                echo "docker build -t ${DOCKERHUB_USERNAME}/travelmap-tester:v1.0.0 ./deploy/build/docker"
+                echo "cp ./build/libs/*.jar ./deploy/build/docker/app.jar"
+                // 도커 빌드
+                echo "docker build -t ${DOCKERHUB_USERNAME}/${APP_IMAGE}:${APP_VERSION} ./deploy/build/docker"
             }
         }
 
         stage('컨테이너 업로드') {
             steps {
                 // DockerHub로 이미지 업로드
-                echo "docker push ${DOCKERHUB_USERNAME}/travelmap-tester:v1.0.0"
+                echo "docker push ${DOCKERHUB_USERNAME}/${APP_IMAGE}:${APP_VERSION}"
+            }
+        }
+
+        stage('Travelmap-deploy 레포 체크아웃') {
+            steps {
+                git branch: 'main', url: "${DEPLOY_REPO}"
             }
         }
 
@@ -80,13 +87,13 @@ pipeline {
             }
         }
 
-        stage('커스터마이즈 배포') {
-            steps {
-                // K8S 배포
-                input message: '배포 시작', ok: "Yes"
-                sh "kubectl apply -f ./deploy/kubectl/namespace-${params.PROFILE}.yaml"
-                sh "kubectl apply -k ./deploy/kustomize/travelmap-tester/overlays/${params.PROFILE}"
-            }
-        }
+//         stage('커스터마이즈 배포') {
+//             steps {
+//                 // K8S 배포
+//                 input message: '배포 시작', ok: "Yes"
+//                 sh "kubectl apply -f ./deploy/kubectl/namespace-${params.PROFILE}.yaml"
+//                 sh "kubectl apply -k ./deploy/kustomize/travelmap-tester/overlays/${params.PROFILE}"
+//             }
+//         }
     }
 }
